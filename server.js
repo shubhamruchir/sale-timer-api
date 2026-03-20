@@ -5,7 +5,7 @@ const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fet
 
 const app = express();
 
-app.use(cors());
+app.use(cors({   origin: "*",   methods: ["GET", "POST"],   allowedHeaders: ["Content-Type"] }));
 
 const SHEET_ID = "1TjlTrxfRPVPV-ygyyt1SCks4rujGkoRV0z46-8zF6tg";
 const SHEET_NAME = "Sheet1";
