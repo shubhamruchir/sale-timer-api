@@ -32,24 +32,38 @@ app.get("/check", async (req, res) => {
       .replace(/\/+$/, "")
       .trim();
 
+    let allDomains = [];
+
     for (const r of rows) {
       const domainCell = r.c?.[0]?.v ? normalize(r.c[0].v) : "";
       const statusCell = r.c?.[1]?.v ? normalize(r.c[1].v) : "";
 
-      if (!domainCell) continue;
+      if (domainCell) {
+        allDomains.push({ domain: domainCell, status: statusCell });
+      }
 
       if (domainCell === domain) {
-        if (statusCell === "no") {
-          return res.json({ allowed: false });
-        }
-        return res.json({ allowed: true });
+        return res.json({
+          allowed: statusCell !== "no",
+          matched: domainCell,
+          status: statusCell,
+          requested: domain
+        });
       }
     }
 
-    return res.json({ allowed: false });
+    return res.json({
+      allowed: false,
+      error: "domain not found",
+      requested: domain,
+      sheetData: allDomains.slice(0, 10)
+    });
 
   } catch (err) {
-    return res.json({ allowed: false });
+    return res.json({
+      allowed: false,
+      error: err.message
+    });
   }
 });
 
