@@ -1,8 +1,11 @@
 const express = require("express");
+const cors = require("cors");
 
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 const app = express();
+
+app.use(cors());
 
 const SHEET_ID = "1TjlTrxfRPVPV-ygyyt1SCks4rujGkoRV0z46-8zF6tg";
 const SHEET_NAME = "Sheet1";
@@ -39,7 +42,13 @@ app.get("/check", async (req, res) => {
 
       if (!domainCell) continue;
 
-      if (domainCell === domain) {
+      if (
+        domain === domainCell ||
+        domain === "www." + domainCell ||
+        "www." + domain === domainCell ||
+        domain.includes(domainCell) ||
+        domainCell.includes(domain)
+      ) {
         return res.json({ allowed: statusCell !== "no" });
       }
     }
