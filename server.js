@@ -7,7 +7,12 @@ const SHEET_ID = "1TjlTrxfRPVPV-ygyyt1SCks4rujGkoRV0z46-8zF6tg";
 const SHEET_NAME = "Sheet1";
 
 app.get("/check", async (req, res) => {
-  const domain = (req.query.d || "").toLowerCase();
+  const domain = (req.query.d || "")
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/\/+$/, "")
+    .trim();
 
   try {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
@@ -23,36 +28,28 @@ app.get("/check", async (req, res) => {
     const normalize = s => String(s || "")
       .toLowerCase()
       .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
       .replace(/\/+$/, "")
       .trim();
 
-    let allowed = false;
-
     for (const r of rows) {
-      const cells = (r.c || [])
-        .map(c => c && c.v ? String(c.v) : "")
-        .map(normalize);
+      const domainCell = r.c?.[0]?.v ? normalize(r.c[0].v) : "";
+      const statusCell = r.c?.[1]?.v ? normalize(r.c[1].v) : "";
 
-      for (let i = 0; i < cells.length; i++) {
-        const v = cells[i];
-        if (!v) continue;
+      if (!domainCell) continue;
 
-        if (v === domain || v.includes(domain) || domain.includes(v)) {
-          const left = i > 0 ? cells[i - 1] : "";
-          if (left === "no") return res.json({ allowed: false });
-          allowed = true;
-        }
-
-        if (v === "no" && cells.includes(domain)) {
+      if (domainCell === domain) {
+        if (statusCell === "no") {
           return res.json({ allowed: false });
         }
+        return res.json({ allowed: true });
       }
     }
 
-    res.json({ allowed });
+    return res.json({ allowed: false });
 
   } catch (err) {
-    res.json({ allowed: false });
+    return res.json({ allowed: false });
   }
 });
 
