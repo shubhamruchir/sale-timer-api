@@ -5,7 +5,8 @@ const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fet
 
 const app = express();
 
-app.use(cors({   origin: "*",   methods: ["GET", "POST"],   allowedHeaders: ["Content-Type"] }));
+// SAFE CORS (won’t crash)
+app.use(cors());
 
 const SHEET_ID = "1TjlTrxfRPVPV-ygyyt1SCks4rujGkoRV0z46-8zF6tg";
 const SHEET_NAME = "Sheet1";
@@ -56,6 +57,7 @@ app.get("/check", async (req, res) => {
     return res.json({ allowed: false });
 
   } catch (err) {
+    console.log("ERROR:", err);
     return res.json({ allowed: false });
   }
 });
